@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ระบบรับออเดอร์ร้าน 9 มกรา - รับจัดเบรคราชบุรี</title>
+<title>ระบบรับออเดอร์</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
 <style>
   :root {
@@ -165,7 +165,7 @@
 <body>
 
 <header>
-  <h1><i class="ti ti-clipboard-list" aria-hidden="true"></i> ระบบรับออเดอร์ร้าน 9 มกรา - รับจัดเบรคราชบุรี</h1>
+  <h1><i class="ti ti-clipboard-list" aria-hidden="true"></i> ระบบรับออเดอร์</h1>
   <button class="btn btn-sm" onclick="exportCSV()"><i class="ti ti-download" aria-hidden="true"></i> ส่งออก CSV</button>
 </header>
 
@@ -326,6 +326,9 @@
 <script>
 const STORAGE_KEY = 'food_orders_v1';
 const GS_URL_KEY = 'gs_webhook_url';
+const HARDCODED_GS_URL = 'https://script.google.com/macros/s/AKfycbxLrR6Zl55AYhLSi5E5n9uXsoXzdurv8Yl8rS6NMwueKUXK05RWqDblwzy-ZE2nCF0/exec';
+
+localStorage.setItem(GS_URL_KEY, HARDCODED_GS_URL);
 
 let orders = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
 let itemCount = 0;
@@ -662,7 +665,7 @@ async function syncAllToSheets() {
   }
 }
 
-const GS_SCRIPT = `// ระบบรับออเดอร์ — Google Apps Script
+const GS_SCRIPT = `// ระบบรับออเดอร์ — Google Apps Script v2
 // วางโค้ดนี้ใน Apps Script แล้ว Deploy เป็น Web App (Execute as: Me, Access: Anyone)
 
 const SHEET_NAME = 'Orders';
@@ -693,9 +696,44 @@ function doPost(e) {
 }
 
 function doGet(e) {
-  return ContentService
-    .createTextOutput(JSON.stringify({ ok: true, message: 'ping ok' }))
-    .setMimeType(ContentService.MimeType.JSON);
+  try {
+    const action = e && e.parameter && e.parameter.action ? e.parameter.action : 'ping';
+    if (action === 'getAll') {
+      const sheet = getOrCreateSheet();
+      const rows = sheet.getDataRange().getValues();
+      const orders = [];
+      for (let i = 1; i < rows.length; i++) {
+        const r = rows[i];
+        if (!r[0]) continue;
+        let items = [];
+        try { items = JSON.parse(r[2]); } catch(ex) {
+          // parse items from summary string
+          items = [{ name: String(r[2]), qty: 1, price: Number(r[3]) || 0, subtotal: Number(r[3]) || 0 }];
+        }
+        orders.push({
+          id: String(r[0]),
+          customerName: String(r[1]),
+          items: items,
+          total: Number(r[3]) || 0,
+          pickupDate: String(r[4]),
+          pickupTime: String(r[5]),
+          status: String(r[6]) === 'ดำเนินการแล้ว' ? 'done' : 'pending',
+          note: String(r[7] || ''),
+          createdAt: String(r[8] || '')
+        });
+      }
+      return ContentService
+        .createTextOutput(JSON.stringify({ ok: true, orders: orders }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    return ContentService
+      .createTextOutput(JSON.stringify({ ok: true, message: 'ping ok' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ ok: false, error: err.message }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
 }
 
 function getOrCreateSheet() {
@@ -719,13 +757,11 @@ function writeHeaders(sheet) {
 }
 
 function appendOrder(sheet, order) {
-  const itemsSummary = order.items.map(i =>
-    i.name + ' x' + i.qty + ' (฿' + i.subtotal + ')'
-  ).join(', ');
+  const itemsJson = JSON.stringify(order.items);
   sheet.appendRow([
     order.id,
     order.customerName,
-    itemsSummary,
+    itemsJson,
     order.total,
     order.pickupDate,
     order.pickupTime,
@@ -759,11 +795,39 @@ function copyScript() {
   });
 }
 
-// Init
-setDefaultDateTime();
-addItemRow();
-renderOrders();
-updateStats();
+// Init — โหลดข้อมูลจาก Google Sheets ทุกครั้งที่เปิดแอพ
+async function initApp() {
+  setDefaultDateTime();
+  addItemRow();
+  showLoadingOverlay(true);
+  try {
+    const res = await fetch(HARDCODED_GS_URL + '?action=getAll&t=' + Date.now());
+    const data = await res.json();
+    if (data.ok && Array.isArray(data.orders) && data.orders.length > 0) {
+      orders = data.orders;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+    }
+  } catch(e) {
+    console.warn('โหลดจาก Sheets ไม่ได้ ใช้ข้อมูล local แทน:', e);
+  }
+  showLoadingOverlay(false);
+  renderOrders();
+  updateStats();
+}
+
+function showLoadingOverlay(show) {
+  let el = document.getElementById('loading-overlay');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'loading-overlay';
+    el.style.cssText = 'position:fixed;inset:0;background:rgba(255,255,255,0.85);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;font-size:16px;color:var(--teal-800);gap:12px;';
+    el.innerHTML = '<div style="font-size:36px;">🔄</div><div>กำลังโหลดข้อมูล...</div>';
+    document.body.appendChild(el);
+  }
+  el.style.display = show ? 'flex' : 'none';
+}
+
+initApp();
 </script>
 </body>
 </html>
