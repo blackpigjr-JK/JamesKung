@@ -432,11 +432,6 @@ function saveOrder() {
   };
 
   orders.push(order);
-  orders.sort((a, b) => {
-    const da = new Date((a.pickupDate || '9999-12-31') + 'T' + (a.pickupTime || '00:00'));
-    const db = new Date((b.pickupDate || '9999-12-31') + 'T' + (b.pickupTime || '00:00'));
-    return da - db;
-  });
   save();
   sendToGoogleSheets(order);
   resetForm();
@@ -493,9 +488,8 @@ function renderOrders() {
       const db = new Date((b.pickupDate || '9999-12-31') + 'T' + (b.pickupTime || '00:00'));
       return sortOrder === 'pickup-asc' ? da - db : db - da;
     } else {
-      const da = new Date(a.createdAt || 0);
-      const db = new Date(b.createdAt || 0);
-      return sortOrder === 'created-asc' ? da - db : db - da;
+      const getTs = o => o.createdAt ? new Date(o.createdAt).getTime() : parseInt((o.id || '0').split('_')[1] || '0');
+      return sortOrder === 'created-asc' ? getTs(a) - getTs(b) : getTs(b) - getTs(a);
     }
   });
 
