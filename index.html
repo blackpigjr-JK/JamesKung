@@ -128,6 +128,13 @@
   .order-footer { margin-top: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
   .order-total { font-size: 16px; font-weight: 600; color: var(--teal-800); }
 
+  .month-row { padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+  .month-row:last-child { border-bottom: none; }
+  .month-row-top { display: flex; justify-content: space-between; align-items: baseline; }
+  .month-label { font-size: 14px; font-weight: 600; color: var(--text); }
+  .month-total { font-size: 17px; font-weight: 600; color: var(--teal-800); }
+  .month-row-detail { display: flex; gap: 14px; margin-top: 4px; font-size: 12px; color: var(--text-secondary); flex-wrap: wrap; }
+
   .badge { padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; }
   .badge-pending { background: var(--amber-50); color: var(--amber-800); }
   .badge-done { background: var(--green-50); color: var(--green-800); }
@@ -236,6 +243,11 @@
           <div style="font-size:22px;font-weight:600;color:var(--green-800);" id="done-total">฿0</div>
         </div>
       </div>
+    </div>
+
+    <div class="card" style="margin-top:0.5rem;">
+      <div class="card-title"><i class="ti ti-calendar-stats" aria-hidden="true"></i> สรุปยอดรายเดือน (ตามวันที่รับสินค้า)</div>
+      <div id="monthly-summary-list"></div>
     </div>
   </div>
 
@@ -560,6 +572,51 @@ function updateStats() {
   document.getElementById('grand-total').textContent = '฿' + grandTotal.toLocaleString('th-TH', {minimumFractionDigits:2});
   document.getElementById('pending-total').textContent = '฿' + pendingTotal.toLocaleString('th-TH', {minimumFractionDigits:2});
   document.getElementById('done-total').textContent = '฿' + doneTotal.toLocaleString('th-TH', {minimumFractionDigits:2});
+
+  renderMonthlySummary();
+}
+
+function renderMonthlySummary() {
+  const el = document.getElementById('monthly-summary-list');
+  if (!el) return;
+
+  // จัดกลุ่มออเดอร์ตามเดือนของ "วันที่รับสินค้า" (ถ้าไม่มีให้ใช้วันที่บันทึก)
+  const groups = {};
+  orders.forEach(o => {
+    const dateStr = o.pickupDate || (o.createdAt ? o.createdAt.slice(0, 10) : '');
+    if (!dateStr || dateStr.length < 7) return;
+    const key = dateStr.slice(0, 7); // 'YYYY-MM'
+    if (!groups[key]) groups[key] = { count: 0, total: 0, pendingTotal: 0, doneTotal: 0 };
+    groups[key].count++;
+    groups[key].total += o.total;
+    if (o.status === 'pending') groups[key].pendingTotal += o.total;
+    else groups[key].doneTotal += o.total;
+  });
+
+  const keys = Object.keys(groups).sort().reverse(); // เดือนล่าสุดอยู่บนสุด
+
+  if (keys.length === 0) {
+    el.innerHTML = '<div class="empty-state" style="padding:1.5rem 0;"><i class="ti ti-calendar-off" aria-hidden="true"></i>ยังไม่มีข้อมูล</div>';
+    return;
+  }
+
+  el.innerHTML = keys.map(key => {
+    const [y, m] = key.split('-').map(Number);
+    const label = new Date(y, m - 1, 1).toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
+    const g = groups[key];
+    return `
+      <div class="month-row">
+        <div class="month-row-top">
+          <span class="month-label">${label}</span>
+          <span class="month-total">฿${g.total.toLocaleString('th-TH', {minimumFractionDigits:2})}</span>
+        </div>
+        <div class="month-row-detail">
+          <span>${g.count} ออเดอร์</span>
+          <span>รอดำเนินการ ฿${g.pendingTotal.toLocaleString('th-TH', {minimumFractionDigits:2})}</span>
+          <span>เสร็จแล้ว ฿${g.doneTotal.toLocaleString('th-TH', {minimumFractionDigits:2})}</span>
+        </div>
+      </div>`;
+  }).join('');
 }
 
 function escHtml(s) {
