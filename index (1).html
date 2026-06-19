@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบรับออเดอร์ร้าน 9 มกรา - รับจัดเบรคราชบุรี</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+  :root {
+    --bg: #f8f7f4;
+    --surface: #ffffff;
+    --border: rgba(0,0,0,0.12);
+    --border-md: rgba(0,0,0,0.2);
+    --text: #1a1a18;
+    --text-secondary: #6b6b66;
+    --text-hint: #9e9e98;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --teal-50: #E1F5EE;
+    --teal-600: #0F6E56;
+    --teal-800: #085041;
+    --amber-50: #FAEEDA;
+    --amber-600: #854F0B;
+    --amber-800: #633806;
+    --green-50: #EAF3DE;
+    --green-600: #3B6D11;
+    --green-800: #27500A;
+    --coral-50: #FAECE7;
+    --coral-600: #993C1D;
+    --blue-50: #E6F1FB;
+    --blue-600: #185FA5;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Sarabun', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.6; }
+  @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600&display=swap');
+
+  header {
+    background: var(--surface);
+    border-bottom: 0.5px solid var(--border);
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+  }
+  header h1 { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  header h1 i { color: var(--teal-600); font-size: 22px; }
+
+  .container { max-width: 960px; margin: 0 auto; padding: 1.5rem 1rem; }
+
+  .tabs { display: flex; gap: 4px; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 4px; margin-bottom: 1.5rem; }
+  .tab-btn { flex: 1; padding: 8px 12px; border: none; background: transparent; border-radius: var(--radius-md); cursor: pointer; font-size: 14px; font-weight: 500; color: var(--text-secondary); transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .tab-btn.active { background: var(--teal-50); color: var(--teal-800); }
+  .tab-btn i { font-size: 16px; }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1rem; }
+  .card-title { font-size: 15px; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; color: var(--teal-800); }
+  .card-title i { font-size: 18px; color: var(--teal-600); }
+
+  .form-grid { display: grid; gap: 12px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  label { font-size: 13px; font-weight: 500; color: var(--text-secondary); }
+  input, select, textarea {
+    border: 0.5px solid var(--border-md); border-radius: var(--radius-md);
+    padding: 8px 12px; font-size: 14px; font-family: inherit;
+    background: var(--bg); color: var(--text); transition: border 0.15s;
+    outline: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--teal-600); box-shadow: 0 0 0 2px rgba(15,110,86,0.1); }
+  textarea { resize: vertical; min-height: 60px; }
+
+  .items-section { margin-top: 1rem; }
+  .items-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .items-title { font-size: 14px; font-weight: 600; color: var(--text-secondary); }
+  .item-row { display: grid; grid-template-columns: 1fr 80px 100px 36px; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .item-row input { font-size: 13px; }
+
+  .btn { padding: 8px 16px; border: 0.5px solid var(--border-md); border-radius: var(--radius-md); cursor: pointer; font-size: 14px; font-weight: 500; background: var(--surface); color: var(--text); font-family: inherit; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; }
+  .btn:hover { background: var(--bg); }
+  .btn-primary { background: var(--teal-600); color: white; border-color: var(--teal-600); }
+  .btn-primary:hover { background: var(--teal-800); border-color: var(--teal-800); }
+  .btn-sm { padding: 5px 10px; font-size: 13px; }
+  .btn-icon { padding: 6px; border-radius: var(--radius-md); }
+  .btn-danger { color: var(--coral-600); border-color: transparent; background: transparent; }
+  .btn-danger:hover { background: var(--coral-50); }
+  .btn-add { color: var(--teal-600); border: 0.5px dashed var(--teal-600); background: var(--teal-50); }
+  .btn-add:hover { background: #c8eade; }
+
+  .total-bar { background: var(--teal-50); border: 0.5px solid rgba(15,110,86,0.25); border-radius: var(--radius-md); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; }
+  .total-label { font-size: 14px; font-weight: 500; color: var(--teal-600); }
+  .total-amount { font-size: 22px; font-weight: 600; color: var(--teal-800); }
+
+  .form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 1rem; }
+
+  .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 1.5rem; }
+  .stat-card { background: var(--surface); border-radius: var(--radius-md); padding: 1rem; text-align: center; border: 0.5px solid var(--border); }
+  .stat-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+  .stat-value { font-size: 24px; font-weight: 600; }
+  .stat-card.total .stat-value { color: var(--teal-800); }
+  .stat-card.pending .stat-value { color: var(--amber-800); }
+  .stat-card.done .stat-value { color: var(--green-800); }
+
+  .filter-row { display: flex; gap: 8px; margin-bottom: 1rem; align-items: center; flex-wrap: wrap; }
+  .filter-row input { flex: 1; min-width: 180px; }
+  .filter-row select { width: 160px; }
+
+  .order-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .order-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; transition: border 0.15s; }
+  .order-card:hover { border-color: var(--border-md); }
+  .order-card.pending { border-left: 3px solid #EF9F27; }
+  .order-card.done { border-left: 3px solid #639922; }
+
+  .order-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .order-name { font-size: 16px; font-weight: 600; }
+  .order-meta { font-size: 13px; color: var(--text-secondary); margin-top: 2px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .order-meta i { font-size: 13px; vertical-align: -1px; margin-right: 3px; }
+
+  .order-items { margin-top: 10px; border-top: 0.5px solid var(--border); padding-top: 10px; }
+  .order-item-row { display: flex; justify-content: space-between; font-size: 13px; padding: 2px 0; }
+  .order-item-name { color: var(--text); }
+  .order-item-price { color: var(--text-secondary); }
+
+  .order-footer { margin-top: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .order-total { font-size: 16px; font-weight: 600; color: var(--teal-800); }
+
+  .badge { padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; }
+  .badge-pending { background: var(--amber-50); color: var(--amber-800); }
+  .badge-done { background: var(--green-50); color: var(--green-800); }
+
+  .btn-status { padding: 6px 14px; font-size: 13px; border-radius: 20px; cursor: pointer; border: 1.5px solid; font-family: inherit; font-weight: 500; transition: all 0.15s; display: inline-flex; align-items: center; gap: 5px; }
+  .btn-status.pending { background: var(--amber-50); color: var(--amber-600); border-color: #EF9F27; }
+  .btn-status.pending:hover { background: #FAEEDA; }
+  .btn-status.done { background: var(--green-50); color: var(--green-600); border-color: #639922; }
+  .btn-status.done:hover { background: #d4e8bc; }
+
+  .order-actions { display: flex; gap: 6px; align-items: center; }
+  .btn-delete { color: var(--coral-600); background: transparent; border: none; cursor: pointer; padding: 5px 8px; border-radius: var(--radius-md); font-size: 16px; transition: background 0.15s; }
+  .btn-delete:hover { background: var(--coral-50); }
+
+  .gs-section { margin-top: 1rem; }
+  .gs-note { font-size: 13px; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.6; background: var(--blue-50); border: 0.5px solid rgba(24,95,165,0.2); border-radius: var(--radius-md); padding: 12px 14px; }
+  .gs-note a { color: var(--blue-600); }
+  .script-box { background: #1e1e1e; color: #d4d4d4; border-radius: var(--radius-md); padding: 1rem; font-family: monospace; font-size: 12px; overflow-x: auto; white-space: pre; margin-top: 8px; position: relative; }
+  .copy-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1); color: #d4d4d4; border: 0.5px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 12px; }
+  .copy-btn:hover { background: rgba(255,255,255,0.2); }
+
+  .empty-state { text-align: center; padding: 3rem 1rem; color: var(--text-hint); }
+  .empty-state i { font-size: 48px; display: block; margin-bottom: 12px; }
+
+  .note-input { font-size: 13px; padding: 6px 10px; }
+
+  @media (max-width: 600px) {
+    .form-row { grid-template-columns: 1fr; }
+    .summary-grid { grid-template-columns: 1fr 1fr; }
+    .item-row { grid-template-columns: 1fr 60px 90px 32px; }
+    .order-top { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1><i class="ti ti-clipboard-list" aria-hidden="true"></i> ระบบรับออเดอร์ร้าน 9 มกรา - รับจัดเบรคราชบุรี</h1>
+  <button class="btn btn-sm" onclick="exportCSV()"><i class="ti ti-download" aria-hidden="true"></i> ส่งออก CSV</button>
+</header>
+
+<div class="container">
+  <div class="tabs" role="tablist">
+    <button class="tab-btn active" onclick="switchTab('orders')" id="tab-orders" role="tab" aria-selected="true">
+      <i class="ti ti-list" aria-hidden="true"></i> รายการออเดอร์
+    </button>
+    <button class="tab-btn" onclick="switchTab('new')" id="tab-new" role="tab" aria-selected="false">
+      <i class="ti ti-plus" aria-hidden="true"></i> เพิ่มออเดอร์ใหม่
+    </button>
+    <button class="tab-btn" onclick="switchTab('settings')" id="tab-settings" role="tab" aria-selected="false">
+      <i class="ti ti-brand-google" aria-hidden="true"></i> Google Sheets
+    </button>
+  </div>
+
+  <!-- Panel: รายการออเดอร์ -->
+  <div class="panel active" id="panel-orders">
+    <div class="summary-grid">
+      <div class="stat-card total">
+        <div class="stat-label">ออเดอร์ทั้งหมด</div>
+        <div class="stat-value" id="stat-total">0</div>
+      </div>
+      <div class="stat-card pending">
+        <div class="stat-label">รอดำเนินการ</div>
+        <div class="stat-value" id="stat-pending">0</div>
+      </div>
+      <div class="stat-card done">
+        <div class="stat-label">ดำเนินการแล้ว</div>
+        <div class="stat-value" id="stat-done">0</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="filter-row">
+        <input type="search" placeholder="ค้นหาชื่อลูกค้า..." id="search-input" oninput="renderOrders()" aria-label="ค้นหา">
+        <select id="filter-status" onchange="renderOrders()" aria-label="กรองสถานะ">
+          <option value="">ทุกสถานะ</option>
+          <option value="pending">รอดำเนินการ</option>
+          <option value="done">ดำเนินการแล้ว</option>
+        </select>
+        <select id="sort-order" onchange="renderOrders()" aria-label="เรียงลำดับ">
+          <option value="pickup-asc">วันรับ: ใกล้สุดก่อน</option>
+          <option value="pickup-desc">วันรับ: ไกลสุดก่อน</option>
+          <option value="created-desc">บันทึกล่าสุดก่อน</option>
+          <option value="created-asc">บันทึกเก่าสุดก่อน</option>
+        </select>
+      </div>
+
+      <div class="order-list" id="order-list">
+        <div class="empty-state"><i class="ti ti-clipboard-off" aria-hidden="true"></i>ยังไม่มีออเดอร์</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:0.5rem;">
+      <div class="card-title"><i class="ti ti-receipt" aria-hidden="true"></i> สรุปยอดรวม</div>
+      <div style="display:flex; gap: 2rem; flex-wrap:wrap;">
+        <div>
+          <div style="font-size:12px;color:var(--text-secondary);">ยอดรวมทั้งหมด</div>
+          <div style="font-size:22px;font-weight:600;color:var(--teal-800);" id="grand-total">฿0</div>
+        </div>
+        <div>
+          <div style="font-size:12px;color:var(--text-secondary);">ยอดที่รอดำเนินการ</div>
+          <div style="font-size:22px;font-weight:600;color:var(--amber-800);" id="pending-total">฿0</div>
+        </div>
+        <div>
+          <div style="font-size:12px;color:var(--text-secondary);">ยอดที่เสร็จแล้ว</div>
+          <div style="font-size:22px;font-weight:600;color:var(--green-800);" id="done-total">฿0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel: เพิ่มออเดอร์ใหม่ -->
+  <div class="panel" id="panel-new">
+    <div class="card">
+      <div class="card-title"><i class="ti ti-user" aria-hidden="true"></i> ข้อมูลลูกค้า</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="customer-name">ชื่อลูกค้า *</label>
+          <input type="text" id="customer-name" placeholder="ชื่อ-นามสกุล" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="pickup-date">วันที่รับสินค้า *</label>
+            <input type="date" id="pickup-date" required>
+          </div>
+          <div class="form-group">
+            <label for="pickup-time">เวลาที่รับสินค้า *</label>
+            <input type="time" id="pickup-time" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="order-note">หมายเหตุ</label>
+          <textarea id="order-note" class="note-input" placeholder="แพ้อาหาร, ความต้องการพิเศษ..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="items-header">
+        <div class="card-title" style="margin-bottom:0"><i class="ti ti-salad" aria-hidden="true"></i> รายการอาหาร</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 80px 100px 36px;gap:8px;margin-bottom:6px;padding:0 2px;">
+        <div style="font-size:12px;color:var(--text-secondary);font-weight:500;">รายการ</div>
+        <div style="font-size:12px;color:var(--text-secondary);font-weight:500;">จำนวน</div>
+        <div style="font-size:12px;color:var(--text-secondary);font-weight:500;">ราคา/ชิ้น</div>
+        <div></div>
+      </div>
+      <div id="items-container"></div>
+      <button class="btn btn-add btn-sm" onclick="addItemRow()" style="margin-top:6px;width:100%;justify-content:center;">
+        <i class="ti ti-plus" aria-hidden="true"></i> เพิ่มรายการ
+      </button>
+
+      <div class="total-bar">
+        <span class="total-label"><i class="ti ti-receipt" aria-hidden="true" style="vertical-align:-2px;margin-right:4px;"></i>ราคารวมทั้งหมด</span>
+        <span class="total-amount" id="order-total">฿0</span>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn" onclick="resetForm()"><i class="ti ti-x" aria-hidden="true"></i> ล้างข้อมูล</button>
+      <button class="btn btn-primary" onclick="saveOrder()"><i class="ti ti-check" aria-hidden="true"></i> บันทึกออเดอร์</button>
+    </div>
+  </div>
+
+  <!-- Panel: Google Sheets -->
+  <div class="panel" id="panel-settings">
+    <div class="card">
+      <div class="card-title"><i class="ti ti-brand-google" aria-hidden="true"></i> เชื่อมต่อ Google Sheets</div>
+      <div class="gs-note">
+        📋 วิธีใช้งาน: คัดลอก Script ด้านล่าง → เปิด Google Sheets ใหม่ → ไปที่ <strong>Extensions → Apps Script</strong> → วางและบันทึก → กด <strong>Deploy → Web App</strong> → คัดลอก URL มาใส่ด้านล่าง
+      </div>
+
+      <div class="form-group" style="margin-bottom:1rem;">
+        <label for="gs-url">Web App URL (จาก Google Apps Script)</label>
+        <input type="url" id="gs-url" placeholder="https://script.google.com/macros/s/..." value="">
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:1.5rem;">
+        <button class="btn btn-primary" onclick="saveGSUrl()"><i class="ti ti-check" aria-hidden="true"></i> บันทึก URL</button>
+        <button class="btn" onclick="testGSConnection()"><i class="ti ti-plug" aria-hidden="true"></i> ทดสอบการเชื่อมต่อ</button>
+        <button class="btn btn-primary" onclick="syncAllToSheets()" style="background:var(--blue-600);border-color:var(--blue-600);"><i class="ti ti-cloud-upload" aria-hidden="true"></i> ซิงค์ทั้งหมด</button>
+      </div>
+      <div id="gs-status" style="font-size:13px;margin-bottom:1rem;"></div>
+
+      <div class="gs-section">
+        <div style="font-size:14px;font-weight:600;margin-bottom:8px;">Google Apps Script (วางใน Apps Script Editor)</div>
+        <div style="position:relative;">
+          <div class="script-box" id="script-content"></div>
+          <button class="copy-btn" onclick="copyScript()"><i class="ti ti-copy" style="font-size:12px;vertical-align:-1px;"></i> คัดลอก</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const STORAGE_KEY = 'food_orders_v1';
+const GS_URL_KEY = 'gs_webhook_url';
+const HARDCODED_GS_URL = 'https://script.google.com/macros/s/AKfycbxLrR6Zl55AYhLSi5E5n9uXsoXzdurv8Yl8rS6NMwueKUXK05RWqDblwzy-ZE2nCF0/exec';
+
+localStorage.setItem(GS_URL_KEY, HARDCODED_GS_URL);
+
+let orders = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+let itemCount = 0;
+
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+}
+
+function generateId() {
+  return 'ord_' + Date.now() + '_' + Math.random().toString(36).substr(2,5);
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+  document.getElementById('panel-' + tab).classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('tab-' + tab).setAttribute('aria-selected','true');
+  if (tab === 'orders') { renderOrders(); updateStats(); }
+  if (tab === 'new' && itemCount === 0) { addItemRow(); setDefaultDateTime(); }
+  if (tab === 'settings') { renderScript(); loadGSUrl(); }
+}
+
+function setDefaultDateTime() {
+  const now = new Date();
+  const dateStr = now.toISOString().split('T')[0];
+  const timeStr = now.toTimeString().slice(0,5);
+  document.getElementById('pickup-date').value = dateStr;
+  document.getElementById('pickup-time').value = timeStr;
+}
+
+function addItemRow() {
+  itemCount++;
+  const id = 'item_' + itemCount;
+  const div = document.createElement('div');
+  div.className = 'item-row';
+  div.id = id;
+  div.innerHTML = `
+    <input type="text" placeholder="ชื่อเมนู..." oninput="calcTotal()" aria-label="ชื่อรายการ">
+    <input type="number" placeholder="1" min="1" value="1" oninput="calcTotal()" aria-label="จำนวน">
+    <input type="number" placeholder="0" min="0" value="" oninput="calcTotal()" aria-label="ราคาต่อชิ้น">
+    <button class="btn btn-icon btn-danger" onclick="removeItem('${id}')" aria-label="ลบรายการ"><i class="ti ti-trash" aria-hidden="true"></i></button>
+  `;
+  document.getElementById('items-container').appendChild(div);
+  calcTotal();
+}
+
+function removeItem(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+  calcTotal();
+}
+
+function calcTotal() {
+  let total = 0;
+  document.querySelectorAll('#items-container .item-row').forEach(row => {
+    const inputs = row.querySelectorAll('input');
+    const qty = parseFloat(inputs[1].value) || 0;
+    const price = parseFloat(inputs[2].value) || 0;
+    total += qty * price;
+  });
+  document.getElementById('order-total').textContent = '฿' + total.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2});
+  return total;
+}
+
+function getItems() {
+  const items = [];
+  document.querySelectorAll('#items-container .item-row').forEach(row => {
+    const inputs = row.querySelectorAll('input');
+    const name = inputs[0].value.trim();
+    const qty = parseFloat(inputs[1].value) || 0;
+    const price = parseFloat(inputs[2].value) || 0;
+    if (name) items.push({ name, qty, price, subtotal: qty * price });
+  });
+  return items;
+}
+
+function saveOrder() {
+  const name = document.getElementById('customer-name').value.trim();
+  const date = document.getElementById('pickup-date').value;
+  const time = document.getElementById('pickup-time').value;
+  const note = document.getElementById('order-note').value.trim();
+  const items = getItems();
+
+  if (!name) { alert('กรุณากรอกชื่อลูกค้า'); document.getElementById('customer-name').focus(); return; }
+  if (!date) { alert('กรุณาเลือกวันที่รับสินค้า'); return; }
+  if (!time) { alert('กรุณาเลือกเวลารับสินค้า'); return; }
+  if (items.length === 0) { alert('กรุณาเพิ่มรายการอาหารอย่างน้อย 1 รายการ'); return; }
+
+  const total = items.reduce((s, i) => s + i.subtotal, 0);
+  const order = {
+    id: generateId(),
+    customerName: name,
+    items,
+    total,
+    pickupDate: date,
+    pickupTime: time,
+    note,
+    status: 'pending',
+    createdAt: new Date().toISOString()
+  };
+
+  orders.push(order);
+  save();
+  sendToGoogleSheets(order);
+  resetForm();
+  switchTab('orders');
+}
+
+function resetForm() {
+  document.getElementById('customer-name').value = '';
+  document.getElementById('pickup-date').value = '';
+  document.getElementById('pickup-time').value = '';
+  document.getElementById('order-note').value = '';
+  document.getElementById('items-container').innerHTML = '';
+  document.getElementById('order-total').textContent = '฿0';
+  itemCount = 0;
+  addItemRow();
+  setDefaultDateTime();
+}
+
+function toggleStatus(id) {
+  const order = orders.find(o => o.id === id);
+  if (!order) return;
+  order.status = order.status === 'pending' ? 'done' : 'pending';
+  order.updatedAt = new Date().toISOString();
+  save();
+  updateStatusInSheets(order);
+  renderOrders();
+  updateStats();
+}
+
+function deleteOrder(id) {
+  if (!confirm('ยืนยันการลบออเดอร์นี้?')) return;
+  orders = orders.filter(o => o.id !== id);
+  save();
+  renderOrders();
+  updateStats();
+}
+
+function renderOrders() {
+  const search = (document.getElementById('search-input').value || '').toLowerCase();
+  const statusFilter = document.getElementById('filter-status').value;
+  const list = document.getElementById('order-list');
+
+  const sortOrder = document.getElementById('sort-order').value;
+
+  let filtered = orders.filter(o => {
+    const matchSearch = !search || o.customerName.toLowerCase().includes(search);
+    const matchStatus = !statusFilter || o.status === statusFilter;
+    return matchSearch && matchStatus;
+  });
+
+  filtered.sort((a, b) => {
+    if (sortOrder === 'pickup-asc' || sortOrder === 'pickup-desc') {
+      const da = new Date((a.pickupDate || '9999-12-31') + 'T' + (a.pickupTime || '00:00'));
+      const db = new Date((b.pickupDate || '9999-12-31') + 'T' + (b.pickupTime || '00:00'));
+      return sortOrder === 'pickup-asc' ? da - db : db - da;
+    } else {
+      const getTs = o => {
+        const t = o.createdAt ? new Date(o.createdAt).getTime() : NaN;
+        if (!isNaN(t)) return t;
+        return parseInt((o.id || '0').split('_')[1] || '0');
+      };
+      return sortOrder === 'created-asc' ? getTs(a) - getTs(b) : getTs(b) - getTs(a);
+    }
+  });
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="empty-state"><i class="ti ti-clipboard-off" aria-hidden="true"></i>ไม่พบออเดอร์</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(o => {
+    const dateStr = o.pickupDate ? new Date(o.pickupDate + 'T00:00:00').toLocaleDateString('th-TH', {day:'numeric',month:'short',year:'numeric'}) : '-';
+    const isPending = o.status === 'pending';
+    const statusLabel = isPending ? 'รอดำเนินการ' : 'ดำเนินการแล้ว';
+    const statusBtnClass = isPending ? 'pending' : 'done';
+    const statusBtnLabel = isPending ? 'กดเมื่อส่งสินค้าแล้ว' : 'ดำเนินการแล้ว ✓';
+    const statusBtnIcon = isPending ? 'ti-clock' : 'ti-circle-check';
+
+    return `
+    <div class="order-card ${o.status}">
+      <div class="order-top">
+        <div>
+          <div class="order-name">${escHtml(o.customerName)}</div>
+          <div class="order-meta">
+            <span><i class="ti ti-calendar" aria-hidden="true"></i>${dateStr}</span>
+            <span><i class="ti ti-clock" aria-hidden="true"></i>${o.pickupTime || '-'}</span>
+            ${o.note ? `<span><i class="ti ti-notes" aria-hidden="true"></i>${escHtml(o.note)}</span>` : ''}
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
+          <span class="badge badge-${o.status}">${statusLabel}</span>
+          <button class="btn-delete" onclick="deleteOrder('${o.id}')" aria-label="ลบ"><i class="ti ti-trash" aria-hidden="true"></i></button>
+        </div>
+      </div>
+      <div class="order-items">
+        ${o.items.map(it => `
+          <div class="order-item-row">
+            <span class="order-item-name">${escHtml(it.name)} × ${it.qty}</span>
+            <span class="order-item-price">฿${it.subtotal.toLocaleString('th-TH', {minimumFractionDigits:2})}</span>
+          </div>
+        `).join('')}
+      </div>
+      <div class="order-footer">
+        <span class="order-total">รวม ฿${o.total.toLocaleString('th-TH', {minimumFractionDigits:2})}</span>
+        <button class="btn-status ${statusBtnClass}" onclick="toggleStatus('${o.id}')">
+          <i class="ti ${statusBtnIcon}" aria-hidden="true"></i>${statusBtnLabel}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+
+  updateStats();
+}
+
+function updateStats() {
+  const total = orders.length;
+  const pending = orders.filter(o => o.status === 'pending').length;
+  const done = orders.filter(o => o.status === 'done').length;
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-pending').textContent = pending;
+  document.getElementById('stat-done').textContent = done;
+
+  const grandTotal = orders.reduce((s, o) => s + o.total, 0);
+  const pendingTotal = orders.filter(o => o.status === 'pending').reduce((s, o) => s + o.total, 0);
+  const doneTotal = orders.filter(o => o.status === 'done').reduce((s, o) => s + o.total, 0);
+  document.getElementById('grand-total').textContent = '฿' + grandTotal.toLocaleString('th-TH', {minimumFractionDigits:2});
+  document.getElementById('pending-total').textContent = '฿' + pendingTotal.toLocaleString('th-TH', {minimumFractionDigits:2});
+  document.getElementById('done-total').textContent = '฿' + doneTotal.toLocaleString('th-TH', {minimumFractionDigits:2});
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function exportCSV() {
+  if (orders.length === 0) { alert('ไม่มีข้อมูลออเดอร์'); return; }
+  const rows = [['รหัสออเดอร์','ชื่อลูกค้า','รายการอาหาร','จำนวน','ราคา/ชิ้น','ราคารวม','วันที่รับ','เวลารับ','ยอดรวม','สถานะ','หมายเหตุ']];
+  orders.forEach(o => {
+    o.items.forEach((it, idx) => {
+      rows.push([
+        idx === 0 ? o.id : '',
+        idx === 0 ? o.customerName : '',
+        it.name, it.qty, it.price, it.subtotal,
+        idx === 0 ? o.pickupDate : '',
+        idx === 0 ? o.pickupTime : '',
+        idx === 0 ? o.total : '',
+        idx === 0 ? (o.status === 'pending' ? 'รอดำเนินการ' : 'ดำเนินการแล้ว') : '',
+        idx === 0 ? (o.note || '') : ''
+      ]);
+    });
+  });
+  const csv = rows.map(r => r.map(c => '"' + String(c).replace(/"/g,'""') + '"').join(',')).join('\n');
+  const bom = '\uFEFF';
+  const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'orders_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click(); URL.revokeObjectURL(url);
+}
+
+function loadGSUrl() {
+  const url = localStorage.getItem(GS_URL_KEY) || '';
+  document.getElementById('gs-url').value = url;
+}
+
+function saveGSUrl() {
+  const url = document.getElementById('gs-url').value.trim();
+  localStorage.setItem(GS_URL_KEY, url);
+  showGSStatus('บันทึก URL เรียบร้อยแล้ว ✓', 'var(--green-600)');
+}
+
+function showGSStatus(msg, color) {
+  const el = document.getElementById('gs-status');
+  el.textContent = msg;
+  el.style.color = color || 'var(--text-secondary)';
+}
+
+async function testGSConnection() {
+  const url = localStorage.getItem(GS_URL_KEY);
+  if (!url) { showGSStatus('กรุณาใส่ URL ก่อน', 'var(--coral-600)'); return; }
+  showGSStatus('กำลังทดสอบ...', 'var(--text-secondary)');
+  try {
+    const res = await fetch(url + '?action=ping', { method: 'GET' });
+    const text = await res.text();
+    if (text.includes('ok') || res.ok) {
+      showGSStatus('✓ เชื่อมต่อสำเร็จ!', 'var(--green-600)');
+    } else {
+      showGSStatus('ตอบกลับแล้วแต่ไม่แน่ใจ: ' + text.slice(0,60), 'var(--amber-800)');
+    }
+  } catch(e) {
+    showGSStatus('เชื่อมต่อไม่ได้: ' + e.message, 'var(--coral-600)');
+  }
+}
+
+async function sendToGoogleSheets(order) {
+  const url = localStorage.getItem(GS_URL_KEY);
+  if (!url) return;
+  try {
+    await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'addOrder', order }),
+    });
+  } catch(e) { console.warn('GS sync failed:', e); }
+}
+
+async function updateStatusInSheets(order) {
+  const url = localStorage.getItem(GS_URL_KEY);
+  if (!url) return;
+  try {
+    await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'updateStatus', id: order.id, status: order.status }),
+    });
+  } catch(e) { console.warn('GS update failed:', e); }
+}
+
+async function syncAllToSheets() {
+  const url = localStorage.getItem(GS_URL_KEY);
+  if (!url) { showGSStatus('กรุณาใส่ URL ก่อน', 'var(--coral-600)'); return; }
+  showGSStatus('กำลังซิงค์...', 'var(--text-secondary)');
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'syncAll', orders }),
+    });
+    showGSStatus('✓ ซิงค์ข้อมูลทั้งหมดเรียบร้อย (' + orders.length + ' ออเดอร์)', 'var(--green-600)');
+  } catch(e) {
+    showGSStatus('ซิงค์ไม่ได้: ' + e.message, 'var(--coral-600)');
+  }
+}
+
+const GS_SCRIPT = `// ระบบรับออเดอร์ — Google Apps Script v2
+// วางโค้ดนี้ใน Apps Script แล้ว Deploy เป็น Web App (Execute as: Me, Access: Anyone)
+
+const SHEET_NAME = 'Orders';
+
+function doPost(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+    const sheet = getOrCreateSheet();
+
+    if (data.action === 'addOrder') {
+      appendOrder(sheet, data.order);
+    } else if (data.action === 'updateStatus') {
+      updateOrderStatus(sheet, data.id, data.status);
+    } else if (data.action === 'syncAll') {
+      sheet.clearContents();
+      writeHeaders(sheet);
+      data.orders.forEach(order => appendOrder(sheet, order));
+    }
+
+    return ContentService
+      .createTextOutput(JSON.stringify({ ok: true }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ ok: false, error: err.message }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doGet(e) {
+  try {
+    const action = e && e.parameter && e.parameter.action ? e.parameter.action : 'ping';
+    if (action === 'getAll') {
+      const sheet = getOrCreateSheet();
+      const rows = sheet.getDataRange().getValues();
+      const tz = Session.getScriptTimeZone();
+      const orders = [];
+      for (let i = 1; i < rows.length; i++) {
+        const r = rows[i];
+        if (!r[0]) continue;
+        let items = [];
+        try { items = JSON.parse(r[2]); } catch(ex) {
+          items = [{ name: String(r[2]), qty: 1, price: Number(r[3]) || 0, subtotal: Number(r[3]) || 0 }];
+        }
+
+        // แปลงวันที่ — ถ้า Sheets แปลงเป็น Date object ให้ format กลับเป็น string
+        let pickupDate = '';
+        if (r[4] instanceof Date && !isNaN(r[4])) {
+          pickupDate = Utilities.formatDate(r[4], tz, 'yyyy-MM-dd');
+        } else {
+          pickupDate = String(r[4] || '');
+        }
+
+        // แปลงเวลา — ถ้า Sheets แปลงเป็น Date object ให้ format กลับเป็น HH:mm
+        let pickupTime = '';
+        if (r[5] instanceof Date && !isNaN(r[5])) {
+          pickupTime = Utilities.formatDate(r[5], tz, 'HH:mm');
+        } else {
+          pickupTime = String(r[5] || '');
+        }
+
+        // แปลงวันที่สร้าง — ถ้า Sheets แปลงเป็น Date object (เพราะค่า ISO string ถูก auto-convert)
+        // ให้แปลงกลับเป็น ISO string ที่เทียบลำดับได้ถูกต้อง ไม่งั้นการเรียง "บันทึกล่าสุดก่อน/เก่าสุดก่อน" จะพังสำหรับแถวที่ถูกแปลง
+        let createdAt = '';
+        if (r[8] instanceof Date && !isNaN(r[8])) {
+          createdAt = r[8].toISOString();
+        } else {
+          createdAt = String(r[8] || '');
+        }
+
+        orders.push({
+          id: String(r[0]),
+          customerName: String(r[1]),
+          items: items,
+          total: Number(r[3]) || 0,
+          pickupDate: pickupDate,
+          pickupTime: pickupTime,
+          status: String(r[6]) === 'ดำเนินการแล้ว' ? 'done' : 'pending',
+          note: String(r[7] || ''),
+          createdAt: createdAt
+        });
+      }
+      return ContentService
+        .createTextOutput(JSON.stringify({ ok: true, orders: orders }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    return ContentService
+      .createTextOutput(JSON.stringify({ ok: true, message: 'ping ok' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ ok: false, error: err.message }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function getOrCreateSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(SHEET_NAME);
+  if (!sheet) {
+    sheet = ss.insertSheet(SHEET_NAME);
+    writeHeaders(sheet);
+  }
+  return sheet;
+}
+
+function writeHeaders(sheet) {
+  const headers = ['รหัสออเดอร์','ชื่อลูกค้า','รายการอาหาร (JSON)',
+    'ยอดรวม','วันที่รับสินค้า','เวลารับสินค้า',
+    'สถานะ','หมายเหตุ','วันที่สร้าง'];
+  sheet.appendRow(headers);
+  sheet.getRange(1, 1, 1, headers.length)
+    .setFontWeight('bold')
+    .setBackground('#E1F5EE');
+}
+
+function appendOrder(sheet, order) {
+  const itemsJson = JSON.stringify(order.items);
+  const lastRow = sheet.getLastRow() + 1;
+  const rowData = [
+    order.id,
+    order.customerName,
+    itemsJson,
+    order.total,
+    order.pickupDate,   // เก็บเป็น string yyyy-MM-dd
+    order.pickupTime,   // เก็บเป็น string HH:mm
+    order.status === 'pending' ? 'รอดำเนินการ' : 'ดำเนินการแล้ว',
+    order.note || '',
+    order.createdAt
+  ];
+  sheet.appendRow(rowData);
+  // กำหนดให้คอลัมน์วันที่ (E), เวลา (F) และวันที่สร้าง (I) เป็น Plain Text ป้องกัน Sheets แปลงค่า
+  sheet.getRange(lastRow, 5).setNumberFormat('@');
+  sheet.getRange(lastRow, 6).setNumberFormat('@');
+  sheet.getRange(lastRow, 9).setNumberFormat('@');
+}
+
+function updateOrderStatus(sheet, orderId, status) {
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === orderId) {
+      sheet.getRange(i + 1, 7).setValue(
+        status === 'pending' ? 'รอดำเนินการ' : 'ดำเนินการแล้ว'
+      );
+      break;
+    }
+  }
+}`;
+
+function renderScript() {
+  document.getElementById('script-content').textContent = GS_SCRIPT;
+}
+
+function copyScript() {
+  navigator.clipboard.writeText(GS_SCRIPT).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = '✓ คัดลอกแล้ว';
+    setTimeout(() => { btn.innerHTML = '<i class="ti ti-copy" style="font-size:12px;vertical-align:-1px;"></i> คัดลอก'; }, 2000);
+  });
+}
+
+// Init — โหลดข้อมูลจาก Google Sheets ทุกครั้งที่เปิดแอพ
+async function initApp() {
+  setDefaultDateTime();
+  addItemRow();
+  showLoadingOverlay(true);
+  try {
+    const res = await fetch(HARDCODED_GS_URL + '?action=getAll&t=' + Date.now());
+    const data = await res.json();
+    if (data.ok && Array.isArray(data.orders) && data.orders.length > 0) {
+      orders = data.orders;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+    }
+  } catch(e) {
+    console.warn('โหลดจาก Sheets ไม่ได้ ใช้ข้อมูล local แทน:', e);
+  }
+  showLoadingOverlay(false);
+  renderOrders();
+  updateStats();
+}
+
+function showLoadingOverlay(show) {
+  let el = document.getElementById('loading-overlay');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'loading-overlay';
+    el.style.cssText = 'position:fixed;inset:0;background:rgba(255,255,255,0.85);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;font-size:16px;color:var(--teal-800);gap:12px;';
+    el.innerHTML = '<div style="font-size:36px;">🔄</div><div>กำลังโหลดข้อมูล...</div>';
+    document.body.appendChild(el);
+  }
+  el.style.display = show ? 'flex' : 'none';
+}
+
+initApp();
+</script>
+</body>
+</html>
